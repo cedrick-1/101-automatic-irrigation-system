@@ -1,0 +1,54 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Initialize the LCD (change 0x27 to your I2C address if required)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Define pins
+const int soilPin = A0; // Soil moisture sensor analog pin
+const int relayPin = 7; // Relay control pin
+
+// Define thresholds
+const int moistureThresholdLow = 40; // Turn pump ON
+const int moistureThresholdHigh = 80; // Turn pump OFF
+
+void setup() {
+  // Initialize LCD and display a message
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Irrigation Sys");
+  lcd.setCursor(0, 1);
+  lcd.print("Initializing...");
+  delay(2000);
+  lcd.clear();
+
+  // Set up pins
+  pinMode(soilPin, INPUT);
+  pinMode(relayPin, OUTPUT);
+  digitalWrite(relayPin, HIGH); // Initially turn OFF pump
+}
+
+void loop() {
+  // Read soil moisture level
+  int sensorValue = analogRead(soilPin);
+  int moisturePercent = map(sensorValue, 1023, 0, 0, 100); // Convert to percentage
+
+  // Display moisture level on LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Moisture: ");
+  lcd.print(moisturePercent);
+  lcd.print("%");
+
+  // Control the pump based on moisture level
+  if (moisturePercent < moistureThresholdLow) {
+    digitalWrite(relayPin, LOW); // Turn ON pump
+    lcd.setCursor(0, 1);
+    lcd.print("Pump: ON ");
+  } else if (moisturePercent > moistureThresholdHigh) {
+    digitalWrite(relayPin, HIGH); // Turn OFF pump
+    lcd.setCursor(0, 1);
+    lcd.print("Pump: OFF");
+  }
+  delay(1000); // Delay for readability
+}
